@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use App\Notifications\PasswordResetNotification;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    protected $table = 'users';
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'google_id',
+        'profile_photo',
+        'is_admin',
+        'is_expert',
+        'is_active',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $language = session('language', 'en') === 'ur' ? 'ur' : 'en';
+        $this->notify(new PasswordResetNotification($token, $language));
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+            'is_admin' => 'boolean',
+            'is_expert' => 'boolean',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function questions()
+    {
+        return $this->hasMany(Question::class);
+    }
+
+    public function answers()
+    {
+        return $this->hasMany(Answer::class, 'expert_id');
+    }
+
+    public function expertHiddenUsers()
+    {
+        return $this->hasMany(ExpertHiddenUser::class, 'user_id');
+    }
+}
