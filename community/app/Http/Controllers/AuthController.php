@@ -224,4 +224,153 @@ class AuthController extends Controller
 
         return view('auth.login');
     }
+     public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (
+            Auth::attempt([
+                'email' => $request->email,
+                'password' => $request->password,
+            ])
+        ) {
+            $request->session()->regenerate();
+
+            $user = Auth::user();
+
+            if (!$user->is_active) {
+                Auth::logout();
+
+                return back()->with(
+                    'error',
+                    'Your account is inactive.'
+                );
+            }
+
+            if ($user->is_admin) {
+                return redirect()
+                    ->route('admin.info');
+            }
+
+            if ($user->is_expert) {
+                return redirect()
+                    ->route('expert.users');
+            }
+
+            return redirect()
+                ->route('dashboard');
+        }
+
+        return back()->with(
+            'error',
+            'Invalid Email or Password.'
+        );
+    }
+
+    private function redirectToPanel(User $user)
+    {
+        if ($user->is_admin) {
+            return redirect()->route('admin.info');
+        }
+
+        if ($user->is_expert) {
+            return redirect()->route('expert.users');
+        }
+
+        return redirect()->route('dashboard');
+    }
+
+    public function redirectToGoogle()
+    {
+        return Socialite::driver('google')
+            ->redirect();
+    }
+
+    public function handleGoogleCallback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')
+                ->user();
+
+            $user = User::where(
+                'email',
+                $googleUser->getEmail()
+            )->first();
+
+            if ($user) {
+                if (!$user->google_id) {
+                    $user->google_id = $googleUser->getId();
+                    $user->email_verified_at = now();
+                    $user->save();
+                }
+            } else {
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'google_id' => $googleUser->getId(),
+                    'password' => Hash::make(
+                        rand(10000000, 99999999)
+                    ),
+                    'email_verified_at' => now(),
+                    'is_admin' => false,
+                    'is_expert' => false,
+                    'is_active' => true,
+                ]);
+            }
+
+            Auth::login($user);
+
+            if ($user->is_admin) {
+                return redirect()
+                    ->route('admin.info');
+            }
+
+            if ($user->is_expert) {
+                return redirect()
+                    ->route('expert.users');
+            }
+
+            return redirect()
+                ->route('dashboard');
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('login')
+                ->with(
+                    'error',
+                    'Google Login Failed.'
+                );
+        }
+    }
+
+    public function showForgotPassword()
+    {
+        return view('auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with(
+                'success',
+                'Password reset link has been sent to your email.'
+            );
+        }
+
+        return back()->withErrors([
+            'email' =>
+                'We could not find an account with this email address.',
+        ]);
+    }
 }
