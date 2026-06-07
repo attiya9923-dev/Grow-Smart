@@ -40,5 +40,42 @@ class AuthController extends Controller
 
         return view('home');
     }
+     public function dashboard()
+    {
+        $month = now()->month;
 
+        $cropQuery = Crop::query();
+        if (is_urdu()) {
+            $cropQuery->where('urdu_completed', true)
+                ->whereNotNull('name_ur')
+                ->where('name_ur', '!=', '');
+        }
+
+        if ($month >= 4 && $month <= 9) {
+            $sliderCrops = (clone $cropQuery)->where('season', 'summer')
+                ->take(10)
+                ->get();
+        } else {
+            $sliderCrops = (clone $cropQuery)->where('season', 'winter')
+                ->take(10)
+                ->get();
+        }
+
+        $cropDataCrops = (clone $cropQuery)->take(8)->get();
+
+        $pestCrops = (clone $cropQuery)
+            ->whereHas('pestManagements', function ($query) {
+                if (is_urdu()) {
+                    $query->where('urdu_completed', true);
+                }
+            })
+            ->take(8)
+            ->get();
+
+        return view('front.dashboard', compact(
+            'sliderCrops',
+            'cropDataCrops',
+            'pestCrops'
+        ));
+    }
 }
