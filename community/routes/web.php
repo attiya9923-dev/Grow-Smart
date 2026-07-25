@@ -7,6 +7,9 @@ use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CropController;
+use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\LanguageController;
 
 
 
@@ -57,6 +60,10 @@ Route::get('/dashboard', [AuthController::class, 'dashboard'])
     ->middleware('auth')
     ->name('dashboard');
 
+    Route::get('/weather', [WeatherController::class, 'index']);
+
+Route::post('/weather/data', [WeatherController::class, 'getWeather']);
+
     Route::get('/grid', [CropController::class, 'grid'])
     ->middleware('auth')
     ->name('grid');
@@ -88,6 +95,27 @@ Route::get('/grains', [CropController::class, 'grains'])
     Route::get('/crop/{id}/pest', [CropController::class, 'pest'])
     ->middleware('auth')
     ->name('crop.pest');
+
+    Route::middleware(['auth', 'user'])->group(function () {
+
+    Route::get('/home', [QuestionController::class, 'home'])
+        ->name('user.home');
+
+    Route::get('/hi', [QuestionController::class, 'userHome'])
+        ->name('user.hi');
+
+    Route::post('/question', [QuestionController::class, 'store'])
+        ->name('question.store');
+
+    Route::get('/question/{id}/edit', [QuestionController::class, 'edit'])
+        ->name('question.edit');
+
+    Route::put('/question/{id}', [QuestionController::class, 'update'])
+        ->name('question.update');
+
+    Route::delete('/question/{id}', [QuestionController::class, 'destroy'])
+        ->name('question.delete');
+});
 
     Route::middleware(['auth', 'expert'])->group(function () {
 
@@ -206,3 +234,55 @@ Route::middleware(['auth', 'admin'])->group(function () {
         ->name('admin.crop.delete');
 });
 
+Route::middleware('auth')->group(function () {
+
+    Route::get('/community', function () {
+        return view('user.community');
+    })->name('community');
+
+    Route::get('/my-questions', [QuestionController::class, 'myQuestions'])
+        ->name('my.questions');
+
+    Route::get('/community/crop', [QuestionController::class, 'cropForum'])
+        ->name('community.crop');
+
+    Route::get('/community/fruit', [QuestionController::class, 'fruitForum'])
+        ->name('community.fruit');
+
+    Route::get('/community/vegetable', [QuestionController::class, 'vegetableForum'])
+        ->name('community.vegetable');
+
+     Route::get('/profile', [ProfileController::class, 'show'])
+        ->name('profile');
+
+    Route::post('/profile/update', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile/delete', [ProfileController::class, 'delete'])
+        ->name('profile.delete');
+
+    Route::get('/account-settings', [AccountSettingsController::class, 'index'])
+        ->name('account.settings');
+
+    Route::post('/account-settings/email', [AccountSettingsController::class, 'updateEmail'])
+        ->name('account.email.update');
+
+    Route::post('/account-settings/email/verify', [AccountSettingsController::class, 'verifyEmail'])
+        ->name('account.email.verify');
+
+    Route::post('/account-settings/email/cancel', [AccountSettingsController::class, 'cancelEmailChange'])
+        ->name('account.email.cancel');
+
+    Route::post('/account-settings/password', [AccountSettingsController::class, 'updatePassword'])
+        ->name('account.password.update');
+
+});
+
+Route::get('/language/{language}', [LanguageController::class, 'change'])
+    ->name('language.change');
+
+Route::view('/privacy-policy', 'privacy-policy')
+    ->name('privacy.policy');
+
+Route::view('/about-us', 'about-us')
+    ->name('about.us');
