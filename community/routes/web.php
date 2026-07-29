@@ -3,7 +3,11 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\AnswerController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CropController;
+
 
 
 
@@ -80,4 +84,125 @@ Route::get('/vegetable', [CropController::class, 'vegetable'])
 Route::get('/grains', [CropController::class, 'grains'])
     ->middleware('auth')
     ->name('grains');
+
+    Route::get('/crop/{id}/pest', [CropController::class, 'pest'])
+    ->middleware('auth')
+    ->name('crop.pest');
+
+    Route::middleware(['auth', 'expert'])->group(function () {
+
+    Route::get('/expert/users', [QuestionController::class, 'expertUsers'])
+        ->name('expert.users');
+
+    Route::get('/expert/users/crop', [QuestionController::class, 'cropExpertUsers'])
+        ->name('expert.crop.users');
+
+    Route::get('/expert/users/crop/{userId}', [QuestionController::class, 'cropUserQuestions'])
+        ->name('expert.crop.user.questions');
+
+    Route::get('/expert/questions/crop', [QuestionController::class, 'cropExpertQuestions'])
+        ->name('expert.crop');
+
+    Route::get('/expert/users/fruit', [QuestionController::class, 'fruitExpertUsers'])
+        ->name('expert.fruit.users');
+
+    Route::get('/expert/users/fruit/{userId}', [QuestionController::class, 'fruitUserQuestions'])
+        ->name('expert.fruit.user.questions');
+
+    Route::get('/expert/questions/fruit', [QuestionController::class, 'fruitExpertQuestions'])
+        ->name('expert.fruit');
+
+    Route::get('/expert/users/vegetable', [QuestionController::class, 'vegetableExpertUsers'])
+        ->name('expert.vegetable.users');
+
+    Route::get('/expert/users/vegetable/{userId}', [QuestionController::class, 'vegetableUserQuestions'])
+        ->name('expert.vegetable.user.questions');
+
+    Route::get('/expert/questions/vegetable', [QuestionController::class, 'vegetableExpertQuestions'])
+        ->name('expert.vegetable');
+
+    Route::delete('/expert/users/{userId}/hide', [QuestionController::class, 'hideUserFromExpertList'])
+        ->name('expert.user.hide');
+
+    Route::post('/answer', [AnswerController::class, 'store'])
+        ->name('answers.store');
+});
+
+Route::middleware(['auth', 'admin'])->group(function () {
+
+    Route::get('/admin/info', [AdminController::class, 'index'])
+        ->name('admin.info');
+
+    Route::get('/admin/users', [AdminController::class, 'allUsers'])
+        ->name('admin.dashboard');
+
+    Route::post('/admin/add-expert', [AdminController::class, 'addExpert'])
+        ->name('admin.addExpert');
+
+    Route::post('/admin/make-admin', [AdminController::class, 'makeAdmin'])
+        ->name('admin.makeAdmin');
+
+    Route::post('/admin/make-expert', [AdminController::class, 'makeExpert'])
+        ->name('admin.makeExpert');
+
+    Route::post('/admin/make-user', [AdminController::class, 'makeUser'])
+        ->name('admin.makeUser');
+
+    Route::post('/admin/toggle-active', [AdminController::class, 'toggleActive'])
+        ->name('admin.toggleActive');
+
+    Route::get('/admin/questions', [AdminController::class, 'usersWithQuestions'])
+        ->name('admin.questions');
+
+    Route::get('/admin/questions/crop', [AdminController::class, 'cropQuestions'])
+        ->name('admin.crop.questions');
+
+    Route::get('/admin/questions/fruit', [AdminController::class, 'fruitQuestions'])
+        ->name('admin.fruit.questions');
+
+    Route::get('/admin/questions/vegetable', [AdminController::class, 'vegetableQuestions'])
+        ->name('admin.vegetable.questions');
+
+    Route::post('/admin/question/approve', [AdminController::class, 'approveQuestion'])
+        ->name('admin.question.approve');
+
+    Route::post('/admin/question/reject', [AdminController::class, 'rejectQuestion'])
+        ->name('admin.question.reject');
+
+    Route::get('/admin/crops', [AdminController::class, 'cropManagement'])
+        ->name('admin.crops');
+
+    Route::get('/admin/crops/create', [AdminController::class, 'createCrop'])
+        ->name('admin.crop.create');
+
+    Route::post('/admin/crops', [AdminController::class, 'storeCrop'])
+        ->name('admin.crop.store');
+
+    Route::get('/admin/crops/data/create', [AdminController::class, 'createCropData'])
+        ->name('admin.crop.data.create');
+
+    Route::post('/admin/crops/data', [AdminController::class, 'storeCropData'])
+        ->name('admin.crop.data.store');
+
+    Route::get('/admin/crops/urdu-data/create', [AdminController::class, 'createUrduCropData'])
+        ->name('admin.crop.urdu.data.create');
+
+    Route::post('/admin/crops/urdu-data', [AdminController::class, 'storeUrduCropData'])
+        ->name('admin.crop.urdu.data.store');
+
+    Route::get('/admin/crops/pest/create', [AdminController::class, 'createPestData'])
+        ->name('admin.pest.data.create');
+
+    Route::post('/admin/crops/pest', [AdminController::class, 'storePestData'])
+        ->name('admin.pest.data.store');
+
+    Route::get('/admin/crops/pest/urdu/create', [AdminController::class, 'createUrduPestData'])
+        ->name('admin.pest.urdu.data.create');
+
+    Route::post('/admin/crops/pest/urdu', [AdminController::class, 'storeUrduPestData'])
+        ->name('admin.pest.urdu.data.store');
+
+    Route::delete('/admin/crops/{id}', [AdminController::class, 'deleteCrop'])
+        ->name('admin.crop.delete');
+});
 
