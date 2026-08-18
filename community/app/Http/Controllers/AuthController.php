@@ -40,7 +40,8 @@ class AuthController extends Controller
 
         return view('home');
     }
-     public function dashboard()
+
+    public function dashboard()
     {
         $month = now()->month;
 
@@ -78,6 +79,16 @@ class AuthController extends Controller
             'pestCrops'
         ));
     }
+
+    public function showRegister()
+    {
+        if (Auth::check()) {
+            return $this->redirectToPanel(Auth::user());
+        }
+
+        return view('auth.register');
+    }
+
     public function register(Request $request)
     {
         $request->validate([
@@ -224,7 +235,8 @@ class AuthController extends Controller
 
         return view('auth.login');
     }
-     public function login(Request $request)
+
+    public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
@@ -373,7 +385,8 @@ class AuthController extends Controller
                 'We could not find an account with this email address.',
         ]);
     }
-     public function showResetPassword(
+
+    public function showResetPassword(
         string $token,
         Request $request
     ) {
