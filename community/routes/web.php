@@ -1,18 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AccountSettingsController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\CropController;
 use App\Http\Controllers\WeatherController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\LanguageController;
-
-
-
+use App\Http\Controllers\CropController;
 
 Route::get('/', [AuthController::class, 'home'])->name('home');
 
@@ -60,11 +57,11 @@ Route::get('/dashboard', [AuthController::class, 'dashboard'])
     ->middleware('auth')
     ->name('dashboard');
 
-    Route::get('/weather', [WeatherController::class, 'index']);
+Route::get('/weather', [WeatherController::class, 'index']);
 
 Route::post('/weather/data', [WeatherController::class, 'getWeather']);
 
-    Route::get('/grid', [CropController::class, 'grid'])
+Route::get('/grid', [CropController::class, 'grid'])
     ->middleware('auth')
     ->name('grid');
 
@@ -92,11 +89,15 @@ Route::get('/grains', [CropController::class, 'grains'])
     ->middleware('auth')
     ->name('grains');
 
-    Route::get('/crop/{id}/pest', [CropController::class, 'pest'])
+Route::get('/crop/{id}', [CropController::class, 'show'])
+    ->middleware('auth')
+    ->name('crop.show');
+
+Route::get('/crop/{id}/pest', [CropController::class, 'pest'])
     ->middleware('auth')
     ->name('crop.pest');
 
-    Route::middleware(['auth', 'user'])->group(function () {
+Route::middleware(['auth', 'user'])->group(function () {
 
     Route::get('/home', [QuestionController::class, 'home'])
         ->name('user.home');
@@ -117,7 +118,7 @@ Route::get('/grains', [CropController::class, 'grains'])
         ->name('question.delete');
 });
 
-    Route::middleware(['auth', 'expert'])->group(function () {
+Route::middleware(['auth', 'expert'])->group(function () {
 
     Route::get('/expert/users', [QuestionController::class, 'expertUsers'])
         ->name('expert.users');
