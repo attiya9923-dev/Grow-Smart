@@ -373,4 +373,81 @@ class AuthController extends Controller
                 'We could not find an account with this email address.',
         ]);
     }
+     public function showResetPassword(
+        string $token,
+        Request $request
+    ) {
+        return view(
+            'auth.reset-password',
+            [
+                'token' => $token,
+                'email' => $request->email,
+            ]
+        );
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => [
+                'required',
+                'min:8',
+                'confirmed',
+                'regex:/[^A-Za-z0-9]/',
+            ],
+        ], [
+            'password.required' =>
+                'Please enter a new password.',
+
+            'password.min' =>
+                'Password must be at least 8 characters long.',
+
+            'password.confirmed' =>
+                'Password confirmation does not match.',
+
+            'password.regex' =>
+                'Password must contain at least one special character.',
+        ]);
+
+        $status = Password::reset(
+            $request->only(
+                'email',
+                'password',
+                'password_confirmation',
+                'token'
+            ),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()
+                ->route('login')
+                ->with(
+                    'success',
+                    'Your password has been reset successfully. You can now login.'
+                );
+        }
+
+        return back()->withErrors([
+            'email' =>
+                'This password reset link is invalid or has expired.',
+        ]);
+    }
+
+   public function logout(Request $request)
+{
+    Auth::logout();
+
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect()->route('home');
+}
 }
