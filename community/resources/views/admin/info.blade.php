@@ -11,7 +11,7 @@ body {
 
 .admin-dashboard {
     width: 90%;
-    max-width: 900px;
+    max-width: 950px;
     margin: 10px auto 35px;
 }
 
@@ -36,14 +36,14 @@ body {
 .menu {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 22px;
     align-items: stretch;
 }
 
 .card {
     background: #ffffff;
     text-decoration: none;
-    padding: 28px 24px;
+    padding: 35px 28px;
     border-radius: 16px;
     text-align: center;
     box-shadow: 0 4px 18px rgba(23, 59, 50, 0.07);
@@ -53,7 +53,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 220px;
+    min-height: 270px;
 }
 
 .card:hover {
@@ -64,30 +64,30 @@ body {
 }
 
 .icon {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
     border-radius: 16px;
     background: #eaf4ec;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 35px;
-    margin-bottom: 15px;
+    font-size: 39px;
+    margin-bottom: 17px;
 }
 
 .card h2 {
     color: #1b5e20;
-    font-size: 21px;
+    font-size: 23px;
     font-weight: 700;
-    margin-bottom: 9px;
+    margin-bottom: 10px;
 }
 
 .card p {
     color: #737d77;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1.6;
     margin: 0;
-    max-width: 330px;
+    max-width: 360px;
 }
 
 .success {
@@ -121,23 +121,23 @@ body {
 
     .menu {
         grid-template-columns: repeat(2, 1fr);
-        gap: 15px;
+        gap: 17px;
     }
 
     .card {
-        min-height: 200px;
-        padding: 23px 16px;
+        min-height: 245px;
+        padding: 30px 18px;
     }
 
     .icon {
-        width: 58px;
-        height: 58px;
-        font-size: 31px;
-        margin-bottom: 12px;
+        width: 64px;
+        height: 64px;
+        font-size: 34px;
+        margin-bottom: 14px;
     }
 
     .card h2 {
-        font-size: 19px;
+        font-size: 20px;
     }
 
     .card p {
@@ -151,27 +151,28 @@ body {
 
     .menu {
         grid-template-columns: 1fr;
-        gap: 14px;
+        gap: 16px;
     }
 
     .card {
-        min-height: 175px;
-        padding: 22px 17px;
+        min-height: 225px;
+        padding: 30px 20px;
     }
 
     .icon {
-        width: 56px;
-        height: 56px;
-        font-size: 30px;
-        margin-bottom: 11px;
+        width: 62px;
+        height: 62px;
+        font-size: 33px;
+        margin-bottom: 13px;
     }
 
     .card h2 {
-        font-size: 19px;
+        font-size: 20px;
     }
 
     .card p {
         font-size: 13px;
+        line-height: 1.55;
     }
 
 }
@@ -179,103 +180,104 @@ body {
 </style>
 
 <div class="admin-dashboard">
-<div class="header">
 
-    <h1>{{ t('Admin Dashboard') }}</h1>
+    <div class="header">
 
-    <p>
-        {{ t('Manage users, questions and crop information') }}
-    </p>
+        <h1>{{ t('Admin Dashboard') }}</h1>
 
-</div>
+        <p>
+            {{ t('Manage users, questions and crop information') }}
+        </p>
 
-@if(session('success'))
-
-    <div class="success">
-        {{ session('success') }}
     </div>
 
-@endif
+    @if(session('success'))
 
-<div class="menu">
-
-    <a
-        href="{{ route('admin.dashboard') }}"
-        class="card"
-    >
-
-        <div class="icon">
-            👥
+        <div class="success">
+            {{ session('success') }}
         </div>
 
-        <h2>
-            {{ t('All Users') }}
-        </h2>
+    @endif
 
-        <p>
-            {{ t('View and manage all registered users.') }}
-        </p>
+    <div class="menu">
 
-    </a>
+        <a
+            href="{{ route('admin.dashboard') }}"
+            class="card"
+        >
 
-    <a
-        href="{{ route('admin.questions') }}"
-        class="card"
-    >
+            <div class="icon">
+                👥
+            </div>
 
-        <div class="icon">
-            📋
-        </div>
+            <h2>
+                {{ t('All Users') }}
+            </h2>
 
-        <h2>
-            {{ t('User Questions') }}
-        </h2>
+            <p>
+                {{ t('View and manage all registered users.') }}
+            </p>
 
-        <p>
-            {{ t('View, review and manage questions submitted by users.') }}
-        </p>
+        </a>
 
-    </a>
+        <a
+            href="{{ route('admin.questions') }}"
+            class="card"
+        >
 
-    <a
-        href="{{ route('admin.crops') }}"
-        class="card"
-    >
+            <div class="icon">
+                📋
+            </div>
 
-        <div class="icon">
-            🌱
-        </div>
+            <h2>
+                {{ t('User Questions') }}
+            </h2>
 
-        <h2>
-            {{ t('Manage Crops') }}
-        </h2>
+            <p>
+                {{ t('View, review and manage questions submitted by users.') }}
+            </p>
 
-        <p>
-            {{ t('Add crops, crop information, pest information and delete crops.') }}
-        </p>
+        </a>
 
-    </a>
+        <a
+            href="{{ route('admin.crops') }}"
+            class="card"
+        >
 
-    <a
-        href="{{ route('expert.users') }}"
-        class="card"
-    >
+            <div class="icon">
+                🌱
+            </div>
 
-        <div class="icon">
-            👨‍🌾
-        </div>
+            <h2>
+                {{ t('Manage Crops') }}
+            </h2>
 
-        <h2>
-            {{ t('Expert Panel') }}
-        </h2>
+            <p>
+                {{ t('Add crops, crop information, pest information and delete crops.') }}
+            </p>
 
-        <p>
-            {{ t('View and manage the expert panel and expert information.') }}
-        </p>
+        </a>
 
-    </a>
+        <a
+            href="{{ route('expert.users') }}"
+            class="card"
+        >
 
-</div>
+            <div class="icon">
+                👨‍🌾
+            </div>
+
+            <h2>
+                {{ t('Expert Panel') }}
+            </h2>
+
+            <p>
+                {{ t('View and manage the expert panel and expert information.') }}
+            </p>
+
+        </a>
+
+    </div>
 
 </div>
 
