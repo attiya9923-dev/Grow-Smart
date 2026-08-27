@@ -3,526 +3,590 @@
 @section('content')
 
 @php
-$crops = $pests
-    ->map(function ($pest) {
-        return $pest->crop;
-    })
-    ->filter()
-    ->unique('id')
-    ->sortBy('name')
-    ->values();
-
-$selected = $pests->firstWhere(
-    'id',
-    old('pest_id', $selectedPestId)
-);
-
-$selectedCropId = old(
-    'crop_id',
-    $selected?->crop_id
-);
+    $cropList = $pests
+        ->pluck('crop')
+        ->filter()
+        ->unique('id')
+        ->sortBy('name')
+        ->values();
 @endphp
 
-<style>
-body {
-    background: #f4f8f4;
-}
+<div class="container pt-1 pb-4" dir="rtl">
 
-.form-container {
-    width: 90%;
-    max-width: 650px;
-    margin: 5px auto 25px auto;
-    background: white;
-    padding: 20px 24px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,.08);
-    box-sizing: border-box;
-    direction: rtl;
-}
+    <div class="urdu-pest-form">
 
-.form-container h1 {
-    text-align: center;
-    color: #1b5e20;
-    margin: 0 0 16px 0;
-    font-size: 24px;
-}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
 
-.form-group {
-    margin-bottom: 11px;
-}
+                <h3 class="text-center mb-4">
+                    اردو کیڑے کا ڈیٹا شامل کریں / اپ ڈیٹ کریں
+                </h3>
 
-.form-group label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #333;
-    font-size: 14px;
-}
+                @if(session('success'))
+                    <div class="alert alert-success">
+                        {{ session('success') }}
+                    </div>
+                @endif
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 14px;
-    font-family: inherit;
-    background: white;
-}
+                @if(session('error'))
+                    <div class="alert alert-danger">
+                        {{ session('error') }}
+                    </div>
+                @endif
 
-.form-group input,
-.form-group select {
-    height: 38px;
-}
+                @if($errors->any())
+                    <div class="alert alert-danger">
+                        @foreach($errors->all() as $error)
+                            <div>{{ $error }}</div>
+                        @endforeach
+                    </div>
+                @endif
 
-.form-group textarea {
-    height: 70px;
-    min-height: 70px;
-    resize: vertical;
-    line-height: 1.7;
-}
+                <form
+                    method="POST"
+                    action="{{ route('admin.pest.urdu.data.store') }}"
+                >
+                    @csrf
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #ef6c00;
-    box-shadow: 0 0 4px rgba(239,108,0,.18);
-}
+                    <div class="mb-3">
+                        <label class="form-label">
+                            فصل منتخب کریں
+                        </label>
 
-.urdu {
-    direction: rtl;
-    text-align: right;
-    font-family: "Noto Nastaliq Urdu", Tahoma, Arial, sans-serif;
-}
+                        <select
+                            id="crop_id"
+                            class="form-select"
+                            onchange="loadPests(this.value)"
+                        >
+                            <option value="">
+                                فصل منتخب کریں
+                            </option>
 
-.english-preview {
-    direction: ltr;
-    text-align: left;
-    background: #f5f8f5;
-    border: 1px solid #d9e5da;
-    padding: 8px 10px;
-    border-radius: 6px;
-    margin-bottom: 11px;
-    color: #555;
-    font-size: 13px;
-}
+                            @foreach($cropList as $crop)
+                                <option value="{{ $crop->id }}">
+                                    {{ $crop->name_ur ?: $crop->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
 
-.btn {
-    padding: 9px 17px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    display: inline-block;
-    text-decoration: none;
-}
+                    <div class="mb-3">
+                        <label class="form-label">
+                            کیڑا منتخب کریں
+                        </label>
 
-.save {
-    background: #ef6c00;
-    color: white;
-}
+                        <select
+                            name="pest_id"
+                            id="pest_id"
+                            class="form-select"
+                            onchange="loadPest(this.value)"
+                            required
+                        >
+                            <option value="">
+                                پہلے فصل منتخب کریں
+                            </option>
+                        </select>
+                    </div>
 
-.save:hover {
-    background: #e65100;
-}
+                    <div class="mb-3">
+                        <label class="form-label">
+                            کیڑے کا نام
+                        </label>
 
-.back {
-    background: #777;
-    color: white;
-    margin-right: 8px;
-}
+                        <input
+                            type="text"
+                            name="name_ur"
+                            id="name_ur"
+                            class="form-control"
+                            value="{{ old('name_ur', $selected->name_ur ?? '') }}"
+                            required
+                        >
+                    </div>
 
-.back:hover {
-    background: #555;
-}
+                    <div class="mb-3">
+                        <label class="form-label">
+                            قسم
+                        </label>
 
-.error {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 9px 11px;
-    border-radius: 6px;
-    margin-bottom: 14px;
-    font-size: 13px;
-    direction: rtl;
-    text-align: right;
-}
+                        <input
+                            type="text"
+                            name="type_ur"
+                            id="type_ur"
+                            class="form-control"
+                            value="{{ old('type_ur', $selected->type_ur ?? '') }}"
+                            required
+                        >
+                    </div>
 
-.error ul {
-    margin: 0;
-    padding-right: 20px;
-    padding-left: 0;
-}
+                    <div class="mb-3">
+                        <label class="form-label">
+                            یہ کیسے پیدا ہوتا ہے
+                        </label>
 
-@media (max-width: 700px) {
-    .form-container {
-        width: 94%;
-        max-width: 650px;
-        margin: 5px auto 20px auto;
-        padding: 18px;
-    }
+                        <textarea
+                            name="how_it_occurs_ur"
+                            id="how_it_occurs_ur"
+                            class="form-control"
+                            rows="4"
+                            required
+                        >{{ old('how_it_occurs_ur', $selected->how_it_occurs_ur ?? '') }}</textarea>
+                    </div>
 
-    .form-container h1 {
-        font-size: 22px;
-        margin-bottom: 14px;
-    }
+                    <div class="mb-3">
+                        <label class="form-label">
+                            علامات
+                        </label>
 
-    .form-group {
-        margin-bottom: 10px;
-    }
+                        <textarea
+                            name="symptoms_ur"
+                            id="symptoms_ur"
+                            class="form-control"
+                            rows="4"
+                            required
+                        >{{ old('symptoms_ur', $selected->symptoms_ur ?? '') }}</textarea>
+                    </div>
 
-    .form-group textarea {
-        height: 65px;
-        min-height: 65px;
-    }
+                    <div class="mb-3">
+                        <label class="form-label">
+                            بچاؤ
+                        </label>
 
-    .btn {
-        padding: 9px 15px;
-    }
-}
-</style>
+                        <textarea
+                            name="protection_ur"
+                            id="protection_ur"
+                            class="form-control"
+                            rows="4"
+                            required
+                        >{{ old('protection_ur', $selected->protection_ur ?? '') }}</textarea>
+                    </div>
 
-<div class="form-container" data-no-translate="true">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            تجویز کردہ کنٹرول
+                        </label>
 
-    <h1>
-        🐛 {{ t('Add Pest Management Information') }}
-    </h1>
+                        <textarea
+                            name="recommended_control_ur"
+                            id="recommended_control_ur"
+                            class="form-control"
+                            rows="4"
+                            required
+                        >{{ old('recommended_control_ur', $selected->recommended_control_ur ?? '') }}</textarea>
+                    </div>
 
-    @if($errors->any())
-        <div class="error">
-            <ul>
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+                    <div class="d-flex gap-2 flex-wrap">
 
-    <form
-        action="{{ route('admin.pest.urdu.data.store') }}"
-        method="POST"
-    >
+                        <button
+                            type="submit"
+                            id="saveButton"
+                            class="btn btn-success"
+                        >
+                            اردو کیڑے کا ڈیٹا محفوظ کریں
+                        </button>
 
-        @csrf
+                        <button
+                            type="button"
+                            id="deleteButton"
+                            class="btn btn-danger"
+                            style="display:none;"
+                            onclick="deletePest()"
+                        >
+                            کیڑا حذف کریں
+                        </button>
 
-        <input
-            type="hidden"
-            name="pest_id"
-            id="pest_id"
-            value="{{ old('pest_id', $selectedPestId) }}"
-        >
+                        <a
+                            href="{{ route('admin.crops') }}"
+                            class="btn btn-secondary"
+                        >
+                            واپس جائیں
+                        </a>
 
-        <div class="form-group">
+                    </div>
 
-            <label>
-                {{ t('Select Crop') }}
-            </label>
+                </form>
 
-            <select
-                name="crop_id"
-                id="crop_id"
-                required
-                onchange="changeCrop(this.value)"
-            >
-
-                <option value="">
-                    {{ t('Select Crop') }}
-                </option>
-
-                @foreach($crops as $crop)
-
-                    <option
-                        value="{{ $crop->id }}"
-                        {{ (string)$selectedCropId === (string)$crop->id ? 'selected' : '' }}
-                    >
-                        @if(!empty($crop->name_ur))
-                            {{ $crop->name_ur }}
-                            @if(!empty($crop->name))
-                                — {{ $crop->name }}
-                            @endif
-                        @else
-                            {{ $crop->name ?: t('Crop name not available') }}
-                        @endif
-                    </option>
-
-                @endforeach
-
-            </select>
-
+            </div>
         </div>
 
-        <div class="form-group">
-
-            <label>
-                {{ t('Pest or Disease Name') }}
-            </label>
-
-            <input
-                type="text"
-                class="urdu"
-                name="name_ur"
-                id="name_ur"
-                placeholder="{{ t('Example: Aphids') }}"
-                value="{{ old('name_ur', $selected?->name_ur) }}"
-                required
-            >
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                {{ t('Pest Type') }}
-            </label>
-
-            <input
-                type="text"
-                class="urdu"
-                name="type_ur"
-                id="type_ur"
-                placeholder="{{ t('Example: Insect Pest') }}"
-                value="{{ old('type_ur', $selected?->type_ur) }}"
-                required
-            >
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                {{ t('How It Occurs') }}
-            </label>
-
-            <textarea
-                class="urdu"
-                name="how_it_occurs_ur"
-                id="how_it_occurs_ur"
-                required
-            >{{ old('how_it_occurs_ur', $selected?->how_it_occurs_ur) }}</textarea>
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                {{ t('Symptoms') }}
-            </label>
-
-            <textarea
-                class="urdu"
-                name="symptoms_ur"
-                id="symptoms_ur"
-                required
-            >{{ old('symptoms_ur', $selected?->symptoms_ur) }}</textarea>
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                {{ t('Protection') }}
-            </label>
-
-            <textarea
-                class="urdu"
-                name="protection_ur"
-                id="protection_ur"
-                required
-            >{{ old('protection_ur', $selected?->protection_ur) }}</textarea>
-
-        </div>
-
-        <div class="form-group">
-
-            <label>
-                {{ t('Recommended Control') }}
-            </label>
-
-            <textarea
-                class="urdu"
-                name="recommended_control_ur"
-                id="recommended_control_ur"
-                required
-            >{{ old('recommended_control_ur', $selected?->recommended_control_ur) }}</textarea>
-
-        </div>
-
-        <div>
-
-            <button
-                type="submit"
-                class="btn save"
-            >
-                💾 {{ t('Save Urdu Pest Information') }}
-            </button>
-
-            <a
-                href="{{ route('admin.crops') }}"
-                class="btn back"
-            >
-                {{ t('Back') }}
-            </a>
-
-        </div>
-
-    </form>
+    </div>
 
 </div>
+
+<div class="delete-modal" id="deleteModal">
+    <div class="delete-modal-box">
+
+        <h3>
+            کیڑا حذف کریں
+        </h3>
+
+        <p>
+            کیا آپ واقعی اس کیڑے کو حذف کرنا چاہتے ہیں؟
+        </p>
+
+        <div class="delete-modal-buttons">
+
+            <button
+                type="button"
+                class="modal-btn no-delete"
+                onclick="closeDeleteModal()"
+            >
+                نہیں
+            </button>
+
+            <button
+                type="button"
+                class="modal-btn yes-delete"
+                onclick="confirmDeletePest()"
+            >
+                ہاں
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+<style>
+
+.container[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+.urdu-pest-form {
+    width: 70%;
+    margin: 0 auto;
+}
+
+.urdu-pest-form .form-label {
+    display: block;
+    text-align: right;
+}
+
+.urdu-pest-form .form-control,
+.urdu-pest-form .form-select {
+    direction: rtl;
+    text-align: right;
+}
+
+.urdu-pest-form textarea {
+    direction: rtl;
+    text-align: right;
+}
+
+.urdu-pest-form input {
+    direction: rtl;
+    text-align: right;
+}
+
+.urdu-pest-form .text-center {
+    text-align: center !important;
+}
+
+.urdu-pest-form .alert {
+    text-align: right;
+}
+
+.delete-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.delete-modal-box {
+    width: 400px;
+    max-width: 90%;
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.delete-modal-box h3 {
+    margin-bottom: 15px;
+    color: #dc3545;
+}
+
+.delete-modal-box p {
+    margin-bottom: 25px;
+    font-size: 16px;
+}
+
+.delete-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.modal-btn {
+    border: none;
+    padding: 9px 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.no-delete {
+    background: #6c757d;
+    color: white;
+}
+
+.yes-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.no-delete:hover {
+    background: #5a6268;
+}
+
+.yes-delete:hover {
+    background: #bb2d3b;
+}
+
+@media (max-width: 992px) {
+
+    .urdu-pest-form {
+        width: 85%;
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    .urdu-pest-form {
+        width: 100%;
+    }
+
+}
+
+</style>
 
 @endsection
 
 @push('scripts')
 
-@php
-$pestUrduData = $pests->map(function ($pest) {
-    return [
-        'id' => $pest->id,
-        'crop_id' => $pest->crop_id,
-        'crop_name' => $pest->crop?->name,
-        'crop_name_ur' => $pest->crop?->name_ur,
-        'name' => $pest->name,
-        'name_ur' => $pest->name_ur,
-        'type_ur' => $pest->type_ur,
-        'how_it_occurs_ur' => $pest->how_it_occurs_ur,
-        'symptoms_ur' => $pest->symptoms_ur,
-        'protection_ur' => $pest->protection_ur,
-        'recommended_control_ur' => $pest->recommended_control_ur,
-    ];
-})->values();
-@endphp
-
 <script>
-const pestUrduData = @json($pestUrduData);
 
-function changeCrop(cropId) {
-    const pestIdField = document.getElementById('pest_id');
+const pests = @json($pests->values());
+
+const cropSelect = document.getElementById('crop_id');
+const pestSelect = document.getElementById('pest_id');
+
+const nameInput = document.getElementById('name_ur');
+const typeInput = document.getElementById('type_ur');
+const howInput = document.getElementById('how_it_occurs_ur');
+const symptomsInput = document.getElementById('symptoms_ur');
+const protectionInput = document.getElementById('protection_ur');
+const controlInput = document.getElementById('recommended_control_ur');
+
+const saveButton = document.getElementById('saveButton');
+const deleteButton = document.getElementById('deleteButton');
+const deleteModal = document.getElementById('deleteModal');
+
+function clearData()
+{
+    nameInput.value = '';
+    typeInput.value = '';
+    howInput.value = '';
+    symptomsInput.value = '';
+    protectionInput.value = '';
+    controlInput.value = '';
+
+    saveButton.innerText =
+        'اردو کیڑے کا ڈیٹا محفوظ کریں';
+
+    deleteButton.style.display =
+        'none';
+}
+
+function loadPests(cropId)
+{
+    pestSelect.innerHTML = '';
+
+    const firstOption =
+        document.createElement('option');
+
+    firstOption.value = '';
+
+    firstOption.textContent =
+        'کیڑا منتخب کریں';
+
+    pestSelect.appendChild(firstOption);
+
+    clearData();
 
     if (!cropId) {
-        pestIdField.value = '';
-        clearUrduFields();
-        updateEnglishName(null);
         return;
     }
 
-    const cropPests = pestUrduData.filter(function (pest) {
-        return String(pest.crop_id) === String(cropId);
-    });
+    pests.forEach(function(pest) {
 
-    if (cropPests.length === 0) {
-        pestIdField.value = '';
-        clearUrduFields();
-        updateEnglishName(null);
-        return;
-    }
+        if (
+            String(pest.crop_id) ===
+            String(cropId)
+        ) {
 
-    const currentPestId = pestIdField.value;
+            const option =
+                document.createElement('option');
 
-    const currentPest = cropPests.find(function (pest) {
-        return String(pest.id) === String(currentPestId);
-    });
+            option.value =
+                pest.id;
 
-    if (currentPest) {
-        fillPest(currentPest.id);
-        return;
-    }
+            option.textContent =
+                pest.name_ur ||
+                pest.name ||
+                'کیڑا ' + pest.id;
 
-    fillPest(cropPests[0].id);
-}
-
-function fillPest(id) {
-    const item = pestUrduData.find(function (pest) {
-        return String(pest.id) === String(id);
-    });
-
-    if (!item) {
-        return;
-    }
-
-    const pestIdField = document.getElementById('pest_id');
-
-    if (pestIdField) {
-        pestIdField.value = item.id;
-    }
-
-    const fields = {
-        name_ur: item.name_ur,
-        type_ur: item.type_ur,
-        how_it_occurs_ur: item.how_it_occurs_ur,
-        symptoms_ur: item.symptoms_ur,
-        protection_ur: item.protection_ur,
-        recommended_control_ur: item.recommended_control_ur
-    };
-
-    Object.entries(fields).forEach(function ([field, value]) {
-        const element = document.querySelector(
-            '[name="' + field + '"]'
-        );
-
-        if (element) {
-            element.value = value || '';
+            pestSelect.appendChild(option);
         }
-    });
 
-    updateEnglishName(item);
-}
-
-function updateEnglishName(item) {
-    const element = document.getElementById('englishPestName');
-
-    if (!element) {
-        return;
-    }
-
-    if (!item) {
-        element.textContent = '—';
-        return;
-    }
-
-    element.textContent = item.name || '—';
-}
-
-function clearUrduFields() {
-    const fields = [
-        'name_ur',
-        'type_ur',
-        'how_it_occurs_ur',
-        'symptoms_ur',
-        'protection_ur',
-        'recommended_control_ur'
-    ];
-
-    fields.forEach(function (field) {
-        const element = document.querySelector(
-            '[name="' + field + '"]'
-        );
-
-        if (element) {
-            element.value = '';
-        }
     });
 }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const cropSelect = document.getElementById('crop_id');
-    const pestIdField = document.getElementById('pest_id');
-
-    if (!cropSelect || !pestIdField) {
+function loadPest(pestId)
+{
+    if (!pestId) {
+        clearData();
         return;
     }
 
-    const selectedPestId = pestIdField.value;
+    const pest =
+        pests.find(function(item) {
 
-    if (selectedPestId) {
-        fillPest(selectedPestId);
+            return String(item.id) ===
+                String(pestId);
+
+        });
+
+    if (!pest) {
+        clearData();
         return;
     }
 
-    if (cropSelect.value) {
-        changeCrop(cropSelect.value);
+    nameInput.value =
+        pest.name_ur || '';
+
+    typeInput.value =
+        pest.type_ur || '';
+
+    howInput.value =
+        pest.how_it_occurs_ur || '';
+
+    symptomsInput.value =
+        pest.symptoms_ur || '';
+
+    protectionInput.value =
+        pest.protection_ur || '';
+
+    controlInput.value =
+        pest.recommended_control_ur || '';
+
+    saveButton.innerText =
+        'اردو کیڑے کا ڈیٹا اپ ڈیٹ کریں';
+
+    deleteButton.style.display =
+        'inline-block';
+}
+
+function deletePest()
+{
+    const pestId =
+        pestSelect.value;
+
+    if (!pestId) {
+        return;
+    }
+
+    deleteModal.style.display =
+        'flex';
+}
+
+function closeDeleteModal()
+{
+    deleteModal.style.display =
+        'none';
+}
+
+function confirmDeletePest()
+{
+    const pestId =
+        pestSelect.value;
+
+    if (!pestId) {
+        closeDeleteModal();
+        return;
+    }
+
+    const form =
+        document.createElement('form');
+
+    form.method = 'POST';
+
+    form.action =
+        '{{ url('/admin/crops/pest') }}/' +
+        pestId;
+
+    const csrf =
+        document.createElement('input');
+
+    csrf.type = 'hidden';
+    csrf.name = '_token';
+    csrf.value = '{{ csrf_token() }}';
+
+    form.appendChild(csrf);
+
+    const method =
+        document.createElement('input');
+
+    method.type = 'hidden';
+    method.name = '_method';
+    method.value = 'DELETE';
+
+    form.appendChild(method);
+
+    document.body.appendChild(form);
+
+    form.submit();
+}
+
+deleteModal.addEventListener('click', function(event)
+{
+    if (event.target === deleteModal) {
+        closeDeleteModal();
     }
 });
+
+document.addEventListener('keydown', function(event)
+{
+    if (event.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
+
+@if(isset($selected) && $selected)
+
+cropSelect.value =
+    '{{ $selected->crop_id }}';
+
+loadPests(
+    '{{ $selected->crop_id }}'
+);
+
+pestSelect.value =
+    '{{ $selected->id }}';
+
+loadPest(
+    '{{ $selected->id }}'
+);
+
+@endif
+
 </script>
 
 @endpush
