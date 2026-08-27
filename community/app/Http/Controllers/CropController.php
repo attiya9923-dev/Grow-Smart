@@ -66,5 +66,41 @@ class CropController extends Controller
         return view('front.vegetable', compact('crops'));
     }
 
-   
+    public function show(int $id)
+    {
+        $crop = Crop::findOrFail($id);
+
+        if (is_urdu() && !$crop->urdu_completed) {
+            abort(404);
+        }
+
+        $cropDetail = CropDetail::where('crop_id', $id)->first();
+
+        if (!$cropDetail) {
+            abort(404);
+        }
+
+        if (is_urdu() && !$cropDetail->urdu_completed) {
+            abort(404);
+        }
+
+        return view('front.crop-detail', compact('crop', 'cropDetail'));
+    }
+
+    public function pest(int $id)
+    {
+        $crop = Crop::findOrFail($id);
+
+        if (is_urdu() && !$crop->urdu_completed) {
+            abort(404);
+        }
+
+        $crop->load(['pestManagements' => function ($query) {
+            if (is_urdu()) {
+                $query->where('urdu_completed', true);
+            }
+        }]);
+
+        return view('front.pest-detail', compact('crop'));
+    }
 }
