@@ -54,13 +54,19 @@ class AdminController extends Controller
             'email_verified_at' => now(),
         ]);
 
+        $role = $request->role === 'expert'
+            ? __('Expert')
+            : ($request->role === 'admin'
+                ? __('Admin')
+                : __('User'));
+
         return redirect()
             ->route('admin.dashboard')
             ->with(
                 'success',
-                is_urdu()
-                    ? ($user->name . ' کو بطور ' . ($request->role === 'expert' ? 'ماہر' : ($request->role === 'admin' ? 'منتظم' : 'صارف')) . ' کامیابی سے شامل کر دیا گیا ہے۔')
-                    : ($user->name . ' was added successfully as ' . ucfirst($request->role) . '.')
+                $user->name . ' ' . __('was added successfully as :role.', [
+                    'role' => $role
+                ])
             );
     }
 
@@ -108,9 +114,7 @@ class AdminController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? ($user->name . ' اب ماہر ہیں۔')
-                : ($user->name . ' is now an Expert.')
+            $user->name . ' ' . __('is now an Expert.')
         );
     }
 
@@ -124,9 +128,7 @@ class AdminController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? ($user->name . ' اب منتظم ہیں۔')
-                : ($user->name . ' is now an Admin.')
+            $user->name . ' ' . __('is now an Admin.')
         );
     }
 
@@ -140,9 +142,7 @@ class AdminController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? ($user->name . ' اب صارف ہیں۔')
-                : ($user->name . ' is now a User.')
+            $user->name . ' ' . __('is now a User.')
         );
     }
 
@@ -155,9 +155,7 @@ class AdminController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? ($user->name . ' کی حیثیت کامیابی سے اپ ڈیٹ کر دی گئی ہے۔')
-                : ($user->name . ' status updated.')
+            $user->name . ' ' . __('status updated.')
         );
     }
 
@@ -223,9 +221,7 @@ class AdminController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? 'سوال کامیابی سے منظور کر لیا گیا ہے۔'
-                : 'Question Approved Successfully.'
+            __('Question Approved Successfully.')
         );
     }
 
@@ -238,9 +234,7 @@ class AdminController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? 'سوال مسترد کر دیا گیا ہے۔'
-                : 'Question Rejected Successfully.'
+            __('Question Rejected Successfully.')
         );
     }
 
@@ -281,9 +275,7 @@ class AdminController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? 'سوال کامیابی سے پوسٹ کر دیا گیا ہے اور ماہرین کو بھیج دیا گیا ہے۔'
-                : 'Question posted successfully & sent to experts!'
+            __('Question posted successfully & sent to experts!')
         );
     }
 
@@ -457,19 +449,21 @@ class AdminController extends Controller
             ->route('admin.crops')
             ->with(
                 'success',
-                is_urdu()
-                    ? 'فصل کامیابی سے شامل کر دی گئی ہے۔'
-                    : 'Crop added successfully.'
+                __('Crop added successfully.')
             );
     }
 
-    public function createCropData()
+    public function createCropData(Request $request)
     {
-        $crops = Crop::orderBy('name')->get();
+        $crops = Crop::with('cropDetail')
+            ->orderBy('name')
+            ->get();
+
+        $selectedCropId = $request->integer('crop_id');
 
         return view(
             'admin.add_crop_data',
-            compact('crops')
+            compact('crops', 'selectedCropId')
         );
     }
 
@@ -599,85 +593,73 @@ class AdminController extends Controller
             ->route('admin.crops')
             ->with(
                 'success',
-                is_urdu()
-                    ? 'فصل کا ڈیٹا کامیابی سے محفوظ کر دیا گیا ہے۔'
-                    : 'Crop data saved successfully.'
+                __('Crop data saved successfully.')
             );
     }
 
-    public function createPestData()
+    public function createPestData(Request $request)
     {
         $crops = Crop::orderBy('name')->get();
 
+        $pests = PestManagement::orderBy('crop_id')
+            ->orderBy('name')
+            ->get();
+
+        $selectedCropId = $request->integer('crop_id');
+        $selectedPestId = $request->integer('pest_id');
+
         return view(
             'admin.add_pest_data',
-            compact('crops')
+            compact(
+                'crops',
+                'pests',
+                'selectedCropId',
+                'selectedPestId'
+            )
         );
     }
 
     public function storePestData(Request $request)
     {
         $request->validate([
-            'crop_id' =>
-                'required|exists:crops,id',
-
-            'name' =>
-                'required|string|max:255',
-
-            'type' =>
-                'required|string|max:255',
-
-            'how_it_occurs' =>
-                'required|string',
-
-            'symptoms' =>
-                'required|string',
-
-            'protection' =>
-                'required|string',
-
-            'recommended_control' =>
-                'required|string',
+            'crop_id' => 'required|exists:crops,id',
+            'pest_id' => 'nullable|exists:pest_managements,id',
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|max:255',
+            'how_it_occurs' => 'required|string',
+            'symptoms' => 'required|string',
+            'protection' => 'required|string',
+            'recommended_control' => 'required|string',
         ]);
 
         $crop = Crop::findOrFail($request->crop_id);
 
-        PestManagement::create([
-            'crop_id' =>
-                $crop->id,
+        if ($request->filled('pest_id')) {
+            $pest = PestManagement::findOrFail($request->pest_id);
+            $pest->crop_id = $crop->id;
+            $pest->crop_name = $crop->name;
+        } else {
+            $pest = new PestManagement();
+            $pest->crop_id = $crop->id;
+            $pest->crop_name = $crop->name;
+        }
 
-            'crop_name' =>
-                $crop->name,
-
-            'name' =>
-                $request->name,
-
-            'type' =>
-                $request->type,
-
-            'how_it_occurs' =>
-                $request->how_it_occurs,
-
-            'symptoms' =>
-                $request->symptoms,
-
-            'protection' =>
-                $request->protection,
-
-            'recommended_control' =>
-                $request->recommended_control,
-
-            'urdu_completed' =>
-                false,
-        ]);
+        $pest->name = $request->name;
+        $pest->type = $request->type;
+        $pest->how_it_occurs = $request->how_it_occurs;
+        $pest->symptoms = $request->symptoms;
+        $pest->protection = $request->protection;
+        $pest->recommended_control = $request->recommended_control;
+        $pest->urdu_completed = false;
+        $pest->save();
 
         return redirect()
             ->route('admin.crops')
             ->with(
                 'success',
-                is_urdu()
-                    ? 'کیڑوں کا ڈیٹا کامیابی سے محفوظ کر دیا گیا ہے۔'
-                    : 'Pest data saved successfully.'
+                $request->filled('pest_id')
+                    ? __('Pest data updated successfully.')
+                    : __('Pest data added successfully.')
             );
     }
 
@@ -766,9 +748,7 @@ class AdminController extends Controller
             ->route('admin.crops')
             ->with(
                 'success',
-                is_urdu()
-                    ? 'اردو فصل کا ڈیٹا کامیابی سے محفوظ کر دیا گیا ہے۔'
-                    : 'Urdu crop data saved successfully.'
+                __('Urdu crop data saved successfully.')
             );
     }
 
@@ -835,9 +815,7 @@ class AdminController extends Controller
             return back()
                 ->withErrors([
                     'pest_id' =>
-                        is_urdu()
-                            ? 'براہِ کرم پہلے فصل کا اردو نام شامل کریں۔'
-                            : 'Please add the Urdu crop name first.'
+                        __('Please add the Urdu crop name first.')
                 ])
                 ->withInput();
         }
@@ -870,10 +848,19 @@ class AdminController extends Controller
             ->route('admin.crops')
             ->with(
                 'success',
-                is_urdu()
-                    ? 'اردو کیڑوں کا ڈیٹا کامیابی سے محفوظ کر دیا گیا ہے۔'
-                    : 'Urdu pest data saved successfully.'
+                __('Urdu pest data saved successfully.')
             );
+    }
+
+    public function deletePest(int $id)
+    {
+        $pest = PestManagement::findOrFail($id);
+        $pest->delete();
+
+        return back()->with(
+            'success',
+            __('Pest deleted successfully.')
+        );
     }
 
     public function deleteCrop(int $id)
@@ -899,9 +886,7 @@ class AdminController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? 'فصل کامیابی سے حذف کر دی گئی ہے۔'
-                : 'Crop deleted successfully.'
+            __('Crop deleted successfully.')
         );
     }
 }
