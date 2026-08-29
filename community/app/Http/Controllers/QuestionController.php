@@ -123,9 +123,7 @@ class QuestionController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? 'آپ کا سوال کامیابی سے جمع کر دیا گیا ہے۔'
-                : 'Your question has been submitted successfully.'
+            __('Your question has been submitted successfully.')
         );
     }
 
@@ -151,62 +149,6 @@ class QuestionController extends Controller
             'fruitCount',
             'vegetableCount'
         ));
-    }
-
-    public function cropExpertQuestions()
-    {
-        $questions = Question::with('user')
-            ->where('category', 'crop')
-            ->where('status', 'approved')
-            ->latest()
-            ->get();
-
-        return view(
-            'expert.crop_questions',
-            compact('questions')
-        );
-    }
-
-    public function fruitExpertQuestions()
-    {
-        $questions = Question::with('user')
-            ->where('category', 'fruit')
-            ->where('status', 'approved')
-            ->latest()
-            ->get();
-
-        return view(
-            'expert.fruit_questions',
-            compact('questions')
-        );
-    }
-
-    public function vegetableExpertQuestions()
-    {
-        $questions = Question::with('user')
-            ->where('category', 'vegetable')
-            ->where('status', 'approved')
-            ->latest()
-            ->get();
-
-        return view(
-            'expert.vegetable_questions',
-            compact('questions')
-        );
-    }
-
-    public function edit(int $id)
-    {
-        $question = Question::findOrFail($id);
-
-        if ($question->user_id != Auth::id()) {
-            abort(403, 'Unauthorized action');
-        }
-
-        return view(
-            'users.edit_question',
-            compact('question')
-        );
     }
 
     public function update(Request $request, int $id)
@@ -258,9 +200,7 @@ class QuestionController extends Controller
 
         return redirect('/hi')->with(
             'success',
-            is_urdu()
-                ? 'سوال کامیابی سے اپ ڈیٹ کر دیا گیا ہے۔'
-                : 'Question Updated Successfully.'
+            __('Question Updated Successfully.')
         );
     }
 
@@ -291,17 +231,13 @@ class QuestionController extends Controller
 
             return back()->with(
                 'success',
-                is_urdu()
-                    ? 'سوال کامیابی سے حذف کر دیا گیا ہے۔'
-                    : 'Question deleted successfully.'
+                __('Question deleted successfully.')
             );
         }
 
         return back()->with(
             'error',
-            is_urdu()
-                ? 'آپ صرف مسترد شدہ سوال یا ایسے سوال کو حذف کر سکتے ہیں جس کا ماہر جواب دے چکا ہو۔'
-                : 'You can only delete a rejected question or a question that has received an expert reply.'
+            __('You can only delete a rejected question or a question that has received an expert reply.')
         );
     }
 
@@ -455,9 +391,7 @@ class QuestionController extends Controller
 
         return back()->with(
             'success',
-            is_urdu()
-                ? 'صارف کو آپ کی ماہر فہرست سے ہٹا دیا گیا ہے۔ اس کا اکاؤنٹ اور سوالات حذف نہیں کیے گئے۔'
-                : 'User removed from your expert list. Their account and questions were not deleted.'
+            __('User removed from your expert list. Their account and questions were not deleted.')
         );
     }
 }
