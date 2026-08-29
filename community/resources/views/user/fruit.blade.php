@@ -448,7 +448,6 @@ textarea:focus {
                     type="file"
                     name="question_image"
                     accept="image/*"
-                    capture="environment"
                     id="image"
                 >
 
