@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Weather Info - GrowSmart')
+@section('title', t('Weather Info') . ' - GrowSmart')
 
 @push('styles')
 
@@ -276,39 +276,6 @@
     margin-top: 8px;
 }
 
-.tips-section {
-    background: linear-gradient(135deg, #f1f8e9, #f8fcf5);
-    border: 1px solid #d8e8d7;
-    border-radius: 16px;
-    padding: 18px;
-    margin-top: 20px;
-}
-
-.tips-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--dark-green);
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 12px;
-}
-
-.tip-item {
-    background: white;
-    border-radius: 10px;
-    padding: 11px 14px;
-    margin-bottom: 8px;
-    color: #444;
-    font-size: 12px;
-    border-left: 4px solid var(--green);
-    box-shadow: 0 2px 7px rgba(0,0,0,0.04);
-}
-
-.tip-item:last-child {
-    margin-bottom: 0;
-}
-
 .refresh-wrapper {
     text-align: center;
     margin-top: 18px;
@@ -483,7 +450,7 @@
                         id="currentIcon"
                         class="weather-main-icon"
                         src=""
-                        alt="Weather"
+                        alt="{{ t('Weather') }}"
                     >
 
                 </div>
@@ -569,18 +536,6 @@
     </div>
 
     <div class="row g-3" id="forecastContainer"></div>
-
-    <div class="tips-section">
-
-        <div class="tips-title">
-            <i class="bi bi-lightbulb-fill"></i>
-            {{ t('Farmer Tips') }}
-        </div>
-
-        <div id="tipsContainer"></div>
-
-    </div>
-
     <div class="refresh-wrapper">
 
     </div>
@@ -712,13 +667,16 @@ function displayWeather(data) {
         current.wind + ' m/s';
 
     document.getElementById('visibilityVal').textContent =
-        current.visibility + ' km';
+        current.visibility;
 
     document.getElementById('todayDate').textContent =
-        new Date().toLocaleDateString('en-PK', {
-            day: 'numeric',
-            month: 'short'
-        });
+        new Date().toLocaleDateString(
+            weatherUrdu ? 'ur-PK' : 'en-PK',
+            {
+                day: 'numeric',
+                month: 'short'
+            }
+        );
 
     const forecastContainer =
         document.getElementById('forecastContainer');
@@ -762,21 +720,6 @@ function displayWeather(data) {
 
                 </div>
 
-            </div>
-        `;
-    });
-
-    const tipsContainer =
-        document.getElementById('tipsContainer');
-
-    tipsContainer.innerHTML = '';
-
-    data.tips.forEach(tip => {
-
-        tipsContainer.innerHTML += `
-            <div class="tip-item">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                ${tip}
             </div>
         `;
     });
