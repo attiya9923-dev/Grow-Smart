@@ -1077,6 +1077,7 @@
  
  
     @media (max-width: 576px) { 
+        
  
         .hero { 
  
