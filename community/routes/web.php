@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\LanguageController;
@@ -13,19 +14,19 @@ use App\Http\Controllers\CropController;
 
 Route::get('/', [AuthController::class, 'home'])->name('home');
 
-Route::get('/register', [AuthController::class, 'showRegister'])
+Route::get('/register', [AuthController::class, 'showRegister'])->middleware('no.back')
     ->name('register');
 
 Route::post('/register', [AuthController::class, 'register'])
     ->name('register.store');
 
-Route::get('/verify-otp', [AuthController::class, 'showVerifyForm'])
+Route::get('/verify-otp', [AuthController::class, 'showVerifyForm'])->middleware('no.back')
     ->name('verify.form');
 
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])
     ->name('verify.otp');
 
-Route::get('/login', [AuthController::class, 'showLogin'])
+Route::get('/login', [AuthController::class, 'showLogin'])->middleware('no.back')
     ->name('login');
 
 Route::post('/login', [AuthController::class, 'login'])
@@ -97,7 +98,7 @@ Route::get('/crop/{id}/pest', [CropController::class, 'pest'])
     ->middleware('auth')
     ->name('crop.pest');
 
-Route::middleware(['auth', 'user'])->group(function () {
+Route::middleware(['auth', 'user', 'no.back'])->group(function () {
 
     Route::get('/home', [QuestionController::class, 'home'])
         ->name('user.home');
@@ -118,7 +119,7 @@ Route::middleware(['auth', 'user'])->group(function () {
         ->name('question.delete');
 });
 
-Route::middleware(['auth', 'expert'])->group(function () {
+Route::middleware(['auth', 'expert', 'no.back'])->group(function () {
 
     Route::get('/expert/users', [QuestionController::class, 'expertUsers'])
         ->name('expert.users');
@@ -129,8 +130,6 @@ Route::middleware(['auth', 'expert'])->group(function () {
     Route::get('/expert/users/crop/{userId}', [QuestionController::class, 'cropUserQuestions'])
         ->name('expert.crop.user.questions');
 
-    Route::get('/expert/questions/crop', [QuestionController::class, 'cropExpertQuestions'])
-        ->name('expert.crop');
 
     Route::get('/expert/users/fruit', [QuestionController::class, 'fruitExpertUsers'])
         ->name('expert.fruit.users');
@@ -138,8 +137,6 @@ Route::middleware(['auth', 'expert'])->group(function () {
     Route::get('/expert/users/fruit/{userId}', [QuestionController::class, 'fruitUserQuestions'])
         ->name('expert.fruit.user.questions');
 
-    Route::get('/expert/questions/fruit', [QuestionController::class, 'fruitExpertQuestions'])
-        ->name('expert.fruit');
 
     Route::get('/expert/users/vegetable', [QuestionController::class, 'vegetableExpertUsers'])
         ->name('expert.vegetable.users');
@@ -147,8 +144,6 @@ Route::middleware(['auth', 'expert'])->group(function () {
     Route::get('/expert/users/vegetable/{userId}', [QuestionController::class, 'vegetableUserQuestions'])
         ->name('expert.vegetable.user.questions');
 
-    Route::get('/expert/questions/vegetable', [QuestionController::class, 'vegetableExpertQuestions'])
-        ->name('expert.vegetable');
 
     Route::delete('/expert/users/{userId}/hide', [QuestionController::class, 'hideUserFromExpertList'])
         ->name('expert.user.hide');
@@ -157,7 +152,7 @@ Route::middleware(['auth', 'expert'])->group(function () {
         ->name('answers.store');
 });
 
-Route::middleware(['auth', 'admin'])->group(function () {
+Route::middleware(['auth', 'admin', 'no.back'])->group(function () {
 
     Route::get('/admin/info', [AdminController::class, 'index'])
         ->name('admin.info');
@@ -231,11 +226,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/admin/crops/pest/urdu', [AdminController::class, 'storeUrduPestData'])
         ->name('admin.pest.urdu.data.store');
 
+    Route::delete('/admin/crops/pest/{id}', [AdminController::class, 'deletePest'])
+        ->name('admin.pest.delete');
+
     Route::delete('/admin/crops/{id}', [AdminController::class, 'deleteCrop'])
         ->name('admin.crop.delete');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'no.back'])->group(function () {
 
     Route::get('/community', function () {
         return view('user.community');
@@ -287,3 +285,5 @@ Route::view('/privacy-policy', 'privacy-policy')
 
 Route::view('/about-us', 'about-us')
     ->name('about.us');
+
+
