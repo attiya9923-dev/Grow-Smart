@@ -486,7 +486,6 @@
                     name="answer_image" 
                     class="image-input" 
                     accept="image/*" 
-                    capture="environment" 
                 > 
 
             </div> 
