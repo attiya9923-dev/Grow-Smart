@@ -43,7 +43,7 @@ class AnswerController extends Controller
         ) {
             return back()
                 ->withErrors([
-                    'answer' => is_urdu() ? 'براہِ کرم جواب لکھیں یا کم از کم ایک صوتی پیغام ریکارڈ کریں۔' : 'Please write an answer or record at least one voice note.'
+                    'answer' => __('Please write an answer or record at least one voice note.')
                 ])
                 ->withInput();
         }
@@ -58,7 +58,7 @@ class AnswerController extends Controller
 
         return back()->with(
             'success',
-            is_urdu() ? 'جواب کامیابی سے جمع کر دیا گیا ہے۔' : 'Answer submitted successfully.'
+            __('Answer submitted successfully.')
         );
     }
 
@@ -82,7 +82,7 @@ class AnswerController extends Controller
 
         return back()->with(
             'success',
-            is_urdu() ? 'جواب کامیابی سے حذف کر دیا گیا ہے۔' : 'Answer deleted successfully.'
+            __('Answer deleted successfully.')
         );
     }
 }
