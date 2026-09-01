@@ -72,11 +72,6 @@ class AdminController extends Controller
 
     public function dashboard()
     {
-        $adminEmail = 'admin@growsmart.com';
-
-        $users = User::where('email', '!=', $adminEmail)
-            ->latest()
-            ->get();
 
         $cropQuestions = Question::with('user')
             ->where('category', 'crop')
