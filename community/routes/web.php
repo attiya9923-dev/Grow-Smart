@@ -287,3 +287,17 @@ Route::view('/privacy-policy', 'privacy-policy')
 
 Route::view('/about-us', 'about-us')
     ->name('about.us');
+
+Route::get('/soil', function () {
+    $userId = null;
+    $token = null;
+    $timestamp = null;
+
+    if (auth()->check()) {
+        $userId = auth()->id();
+        $timestamp = time();
+        $token = hash_hmac('sha256', $userId . '|' . $timestamp, env('APP_KEY'));
+    }
+
+    return view('soil', compact('userId', 'token', 'timestamp'));
+})->name('soil');
